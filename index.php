@@ -1,9 +1,9 @@
 <?php
 		/* Απαραίτητα includes και εκκίνηση του session */
-		include_once dirname(__FILE__).'/../../init.php';		
+		//include_once dirname(__FILE__).'/../../init.php';		-- Hackademic 2 
         session_start();
 		
-        require_once(HACKADEMIC_PATH."pages/challenge_monitor.php");
+        //require_once(HACKADEMIC_PATH."pages/challenge_monitor.php");	--Hackademic 2
 		/* αν υπάρχει η $_GET['user'] και δεν έχουμε ξεκινήσει το init_timer (που κρατάει τον χρόνο που
 		φόρτωσε για πρώτη φορά η σελίδα, ξεκινάμε το challenge και κρατάμε το timestamp ως σημείο αναφοράς
 		για τον χρόνο που χρειάστηκε ο χρήστης για να τελειώσει τα challenges
@@ -11,25 +11,14 @@
 		H $_GET['user'] έχει τιμή, μόνο όταν ένας χρήστης έρχεται απο το hackademic (εκεί που πατάει το 
 		κουμπάκι try it)
 		*/
-		if (isset($_GET['user']) && !(isset($_SESSION['init_timer']))) {
-			$monitor->update(CHALLENGE_INIT,$_GET['user'],$_GET['id'],$_GET['token']);
+		//if (isset($_GET['user']) && !(isset($_SESSION['init_timer']))) {	--hackademic 2
+		if (!isset($_SESSION['init_timer'])) {
+			//$monitor->update(CHALLENGE_INIT,$_GET['user'],$_GET['id'],$_GET['token']);	-- hackademic 2
 			$_SESSION['init_timer'] = time();
-		/* Αν ο χρήστης έκανε refresh thn σελιδα η ξαναπάτησε το try it, τότε διαγράφουμε τις μεταβλητές 
-		του session και τον αφήνουμε να συνεχίσει */
-		} else if (isset($_GET['user']) && (isset($_SESSION['init_timer']))){
-			unset($_SESSION['ch01']);
-			unset($_SESSION['ch02']);
-			unset($_SESSION['ch03']);
-			unset($_SESSION['ch04']);
-			unset($_SESSION['ch01_timer']);
-			unset($_SESSION['ch02_timer']);
-			unset($_SESSION['ch03_timer']);
-			unset($_SESSION['ch04_timer']);
-		}
-		/* αν δεν έχει κάνει login sto hackademic τον γυρνάμε πίσω για να κάνει (μιας και χρειαζόμαστε το cookie) */
+		/* αν δεν έχει κάνει login sto hackademic τον γυρνάμε πίσω για να κάνει (μιας και χρειαζόμαστε το cookie) 
 		if (!isset($_COOKIE['PHPSESSID'])) {
 			header("Location: ../../index.php");
-		}
+		} -- hackademic 2 */
 		/* Αν το cookie μας (άρα και το username) έχει την τιμή admin και ταυτόχρονα δεν έχουμε 
 		δώσει τιμή στο $_SESSION['ch02'] (το flag που μας λέει οτι πέρασε το 2ο challenge), τότε τον περνάμε
 		γιατί άλλαξε την τιμή του cookie αντί να επιχειρήσει να κάνει injection. */
@@ -317,7 +306,7 @@ if (isset($_GET['error'])) {
 (σε περίπτωση που ο χρήστης θέλει να το ξαναδοκιμάσει θα μοιάζει τερματισμένο μόλις ξανανοίξει το index.php)
 και εμφάνισε το Victory Dialog*/
 if ($_SESSION['ch04'] == 1) {
-			 $monitor->update(CHALLENGE_SUCCESS);
+			// $monitor->update(CHALLENGE_SUCCESS); --	 hackademic 2 
 			unset($_SESSION['init_timer']);
 			unset($_SESSION['ch01']);
 			unset($_SESSION['ch02']);

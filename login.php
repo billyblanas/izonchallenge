@@ -4,7 +4,7 @@
 μας δίνουν την δυνατότητα να συνδεθούμε στον MySQL server και ξεκινάμε και το session 
 για να έχουμε πρόσβαση στις μεταβλητές του*/
 session_start();
-include_once dirname(__FILE__).'/../../init.php';		
+// include_once dirname(__FILE__).'/../../init.php';		--hackademic 2 
 include_once 'config.inc.php';
 //require_once(HACKADEMIC_PATH."pages/challenge_monitor.php");
 
