@@ -75,8 +75,8 @@ height: 100vh;
 		float: left; color: #00005b; font-size: 75px; line-height: 60px; padding-top: 4px; padding-right: 8px; padding-left: 3px; font-family: Georgia; text-shadow: 2px 2px 4px black;
 	}
     </style>
-	<link rel="shortcut icon" href="img/o.png" />
-	<link rel="icon" href="img/o.png" />
+	<link rel="shortcut icon" href="img/favicon.ico" />
+	<link rel="icon" href="img/favicon.ico" />
   </head>
   <body>
 <div class="navbar navbar-inverse navbar-static-top">
