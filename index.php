@@ -2,7 +2,16 @@
 		/* Απαραίτητα includes και εκκίνηση του session */
 		include_once dirname(__FILE__).'/../../init.php';		
         session_start();
-		
+		/* Έλεγχος για το αν ο χρήστης προσπαθεί πάνω απο μια ώρα για να τελειώσει το challenge*/
+		/* Αν ναι, τότε κάνουμε reset το session */
+		if (isset($_SESSION['init_timer'])) {
+			if (time()-$_SESSION['init_timer']>3600) {
+				unset($_SESSION['init_timer']);
+				unsetSession();
+				header("Location: index.php?error=10");
+			}
+		}
+
         require_once(HACKADEMIC_PATH."pages/challenge_monitor.php");
 		/* αν υπάρχει η $_GET['user'] και δεν έχουμε ξεκινήσει το init_timer (που κρατάει τον χρόνο που
 		φόρτωσε για πρώτη φορά η σελίδα, ξεκινάμε το challenge και κρατάμε το timestamp ως σημείο αναφοράς
@@ -17,14 +26,7 @@
 		/* Αν ο χρήστης έκανε refresh thn σελιδα η ξαναπάτησε το try it, τότε διαγράφουμε τις μεταβλητές 
 		του session και τον αφήνουμε να συνεχίσει */
 		} else if (isset($_GET['user']) && (isset($_SESSION['init_timer']))){
-			unset($_SESSION['ch01']);
-			unset($_SESSION['ch02']);
-			unset($_SESSION['ch03']);
-			unset($_SESSION['ch04']);
-			unset($_SESSION['ch01_timer']);
-			unset($_SESSION['ch02_timer']);
-			unset($_SESSION['ch03_timer']);
-			unset($_SESSION['ch04_timer']);
+			unsetSession();
 		}
 		/* αν δεν έχει κάνει login sto hackademic τον γυρνάμε πίσω για να κάνει (μιας και χρειαζόμαστε το cookie) */
 		if (!isset($_COOKIE['PHPSESSID'])) {
@@ -47,7 +49,25 @@
 			$secs = floor($seconds % 60);
 			return sprintf("%1$02d:%2$02d:%3$02d",$hours,$mins,$secs);
 		}
-		
+		/* Διαγραφή των μεταβλητών του session */	
+		function unsetSession() {
+			unset($_SESSION['ch01']);
+			unset($_SESSION['ch02']);
+			unset($_SESSION['ch03']);
+			unset($_SESSION['ch04']);
+			unset($_SESSION['ch01_timer']);
+			unset($_SESSION['ch02_timer']);
+			unset($_SESSION['ch03_timer']);
+			unset($_SESSION['ch04_timer']);
+			unset($_SESSION['ch04_stamp']);
+			unset($_SESSION['ch01_egg']);
+			unset($_SESSION['ch02_egg']);
+			unset($_SESSION['random_date']);
+		}
+		/* random αριθμός για την παραγωγή ημερομηνιών στο recent news*/
+		if (!isset($_SESSION['random_date'])) {
+			$_SESSION['random_date']=rand(12,48);
+		}
 ?>
 <!DOCTYPE html>
 <html>
@@ -96,14 +116,14 @@ height: 100vh;
               <li class="">
                 <?php
 					/* κώδικας για το info popup Κατα περίπτωση */
-					if (!isset($_COOKIE['izon'])) {	//περίπτωση 1, ο χρήστης δεν έχει κάνει login
-						echo '<a href="#" class="" data-toggle="popover" data-placement="bottom" data-selector="true" data-content="" title="" id="info-ch01" rel="popover"><i class="icon-info-sign icon-white"></i> Info</a>';
-					} if (isset($_COOKIE['izon']) && ($_COOKIE['izon']!='admin')) { //περίπτωση 2, ο χρήστης δεν είναι admin
-						echo '<a href="#" class="" data-toggle="popover" data-placement="bottom" data-selector="true" data-content="" title="" id="info-ch02" rel="popover"><i class="icon-info-sign icon-white"></i> Info</a>';
-					} if (isset($_COOKIE['izon']) && ($_COOKIE['izon']=='admin') && (!isset($_SESSION['ch03']))) {	//περίπτωση 3, ο χρήστης είναι admin αλλα δεν έχει τελειώσει με το 3ο challenge
-						echo '<a href="#" class="" data-toggle="popover" data-placement="bottom" data-selector="true" data-content="" title="" id="info-ch03" rel="popover"><i class="icon-info-sign icon-white"></i> Info</a>';
-					} if (isset($_COOKIE['izon']) && (isset($_SESSION['ch03']))) {	//περίπτωση 4, ο χρήστης τελείωσε το 3ο challenge και είναι admin
+					if (isset($_SESSION['ch03'])) {
 						echo '<a href="#" class="" data-toggle="popover" data-placement="bottom" data-selector="true" data-content="" title="" id="info-ch04" rel="popover"><i class="icon-info-sign icon-white"></i> Info</a>';
+					} else if (isset ($_SESSION['ch02']) && (!isset($_SESSION['ch03']))) {
+						echo '<a href="#" class="" data-toggle="popover" data-placement="bottom" data-selector="true" data-content="" title="" id="info-ch03" rel="popover"><i class="icon-info-sign icon-white"></i> Info</a>';
+					} else if (isset ($_SESSION['ch01']) && (!isset($_SESSION['ch02']))) {
+						echo '<a href="#" class="" data-toggle="popover" data-placement="bottom" data-selector="true" data-content="" title="" id="info-ch02" rel="popover"><i class="icon-info-sign icon-white"></i> Info</a>';
+					} else if (!isset($_SESSION['ch01'])) {
+						echo '<a href="#" class="" data-toggle="popover" data-placement="bottom" data-selector="true" data-content="" title="" id="info-ch01" rel="popover"><i class="icon-info-sign icon-white"></i> Info</a>';
 					}
 				?>
               </li>
@@ -143,11 +163,11 @@ height: 100vh;
 		<?php
 		if (isset($_COOKIE['izon'])) {
 			echo '
-			<li class="">
+			<li class="disabled">
 				<a><i class="icon-wrench"></i> Profile</a>
 			</li>';
 			if ($_COOKIE['izon'] == "admin") {
-				echo '<li class="">
+				echo '<li class="disabled">
 					<a><i class="icon-folder-close"></i> Obfuscation</a>
 				</li>';
 			}
@@ -189,13 +209,24 @@ height: 100vh;
 					//oti fainetai meta to login kai xwris na einai admin o user
 					echo '<script>$(document).ready(function() {
 					document.title = "Izon Corp. Welcome ' . $_COOKIE['izon'] . '";	});</script>';
+					echo '<p>Welcome back ' . $_COOKIE['izon'] . ', accessing the site from <i>' . $_SERVER['REMOTE_ADDR'] .'</i></p>';
+					echo '<h2>Recent News</h2>';
+					$date = new DateTime();
+					$date->sub(new DateInterval('P'.$_SESSION['random_date'] .'D'));
+					echo '<p><b>' . $date->format('Y-m-d') . '</b>: Security measures have been increased due to recent information about industrial espionage. Please refer to IZONCORP-023 manual.</p>';
+					$date->sub(new DateInterval('P'.$_SESSION['random_date'] .'D'));
+					echo '<p><b>' . $date->format('Y-m-d') . '</b>: Internal site will be down for maintenance and the launch of the new and improved interface based on Twitter\'s <a href="http://getbootstrap.com/">Bootstrap</a>.</p>';
+					$date->sub(new DateInterval('P'.$_SESSION['random_date'] .'D'));
+					echo '<p><b>' . $date->format('Y-m-d') . '</b>: Introducting the new coprorate VPN. Now we can locate you and provide you an even better experience while working remotely.</p>';
+					
 					
 				}
 				else if ((isset($_SESSION['ch02'])) && (!isset($_SESSION['ch03']))) { 
 					echo '<script>$(document).ready(function() {
 					document.title = "Izon Corp. Admin Panel";
 					});</script>';
-					echo '<p><pre>function getCookie(e){var t=e+"=";var n=document.cookie.split(";");for(var r=0;r&lt;n.length;r++){var i=n[r].trim();if(i.indexOf(t)==0)return i.substring(t.length,i.length)}return""}var _="47 ";var __="111 98 102 117 115 99 97 116 101 ";var ___="106 115 ";var ____="112 104 112 ";var _____="46 ";var href=___+__+__+_+____+____+_____;var username=getCookie("izon");if(username=="admin"){location.href=href}</pre></p>';
+					echo '<p>I am transmitting the new way of obfuscation we are developing, in order to make better use of our vast botnets. This piece of code does not work as intended, but, perhaps you can figure it out and make it work...</p>';
+					echo '<p><pre id="typewrite">function getCookie(e){var t=e+"=";var n=document.cookie.split(";");for(var r=0;r&lt;;n.length;r++){var i=n[r].trim();if(i.indexOf(t)==0)return i.substring(t.length,i.length)}return""}var _="47 ";var __="111 98 102 117 115 99 97 116 101 ";var ___="106 115 ";var ____="112 104 112 ";var _____="46 ";var href=___+__+__+_+____+____+_____;var username=getCookie("izon");if(username=="admin"){location.href=href}</pre></p>';
 				} else if (isset($_SESSION['ch03'])) {
 					echo '<script>$(document).ready(function() {
 					document.title = "Izon Corp. OTP Authentication";
@@ -209,7 +240,7 @@ height: 100vh;
 						$_SESSION['ch04_stamp'] = time();
 					}
 					echo '
-					<form action="otp.php" method="POST">
+					<form action="otp.php" method="POST" class="form-inline">
 					<fieldset>
 						<legend>Insert Token Password</legend>
 							<label>Password</label>
@@ -219,7 +250,7 @@ height: 100vh;
 					</form>
 					<p><pre style="text-align:center;" >This page was generated at ' . date("H:i:s", $_SESSION['ch04_stamp']) . '</pre></p>';
 				}
-
+				
 				?>
 </div>
 		</div>
@@ -234,7 +265,7 @@ $(function () {
 	$("#info-ch01").popover({content: '<p>Your first task is to infiltrate the site of Izon Corporation. I have already setup your computer to disguise itself as a part of the corporate VPN and the site will recognize you as regular user.</p><p>You will be given credentials to login but you have to penetrate some of the site\'s securities</p><p><i>A friendly tip: Look in the HTTP header...</i></p>', html: true, title: 'Challenge 1 Information', trigger: 'hover'});
 	$("#info-ch02").popover({content: '<p><i>Congratulations, you are still alive!</i> The next part of the task is to give yourself administrator status.</p><p>Bear in mind that the developers of this site have made a lot of programming mistakes since they were absolutely sure that this location is only accessible through the corporate VPN.</p><p><i> A friendly tip: Google is your best friend when it comes to <b>SQL Injection Cheat Sheets</b>...</i></p>', html: true, title: 'Challenge 2 Information', trigger: 'hover'});
 	$("#info-ch03").popover({content: '<p>Izon is researching new ways of obfuscating their malicious code that targets everyday computers and makes them a part of their distributed computing network.</p><p>I managed to find one of these \"programs\" and placed a link on this page. Understanding and running this piece of code will give you further access to the site and Izon\'s secrets</p><p><i>A friendly tip: You are looking for a file in a subdirectory of this directory...</i></p>', html: true, title: 'Challenge 3 Information', trigger: 'hover'});
-	$("#info-ch04").popover({content: '<p>You are on your own...</p> <p><i>A friendly tip:</i><p>User <b>19393831</b> at <b>22:31</b> entered <b>198863</b> successfully.<br> User <b>deadbeef</b> at <b>03:15</b> entered <b>de1247</b> successfully.</p>', html: true, title: 'Challenge 4 Information', trigger: 'hover'});
+	$("#info-ch04").popover({content: '<p>You are on your own <i><?php echo hash('crc32', $_COOKIE['PHPSESSID']);?></i>...</p><p>Note that you need to be logged in as administrator to proceed.</p> <p><i>A friendly tip:</i><p>User <b>19393831</b> at <b>22:31</b> entered <b>198863</b> successfully.<br> User <b>deadbeef</b> at <b>03:15</b> entered <b>de1247</b> successfully.</p>', html: true, title: 'Challenge 4 Information', trigger: 'hover'});
 });
 </script>
 <div id="errorModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -273,6 +304,9 @@ $(function () {
 			case 9:
 				echo "OTP error. Invalid password!";
 				break;
+			case 10: 
+				echo "You were too slow. All progress has been lost, and you have to start over.";
+				break;
 			}
 	?>
 	</p>
@@ -287,6 +321,7 @@ $(function () {
     <h3>You have successfully completed the challenges!</h3>
   </div>
   <div class="modal-body alert alert-success">
+	<p><i>&quot;If you found this, I am already dead. If Jax sent you... Tell him that the solution is <b>60659</b>, he'll understand&quot;</i></p>
     <p>
 		Congratulations young hacker! You have completed the Izon Challenge! Click &quot;Close&quot; to close this window.
 	</p>
@@ -317,19 +352,8 @@ if (isset($_GET['error'])) {
 (σε περίπτωση που ο χρήστης θέλει να το ξαναδοκιμάσει θα μοιάζει τερματισμένο μόλις ξανανοίξει το index.php)
 και εμφάνισε το Victory Dialog*/
 if ($_SESSION['ch04'] == 1) {
-			 $monitor->update(CHALLENGE_SUCCESS);
 			unset($_SESSION['init_timer']);
-			unset($_SESSION['ch01']);
-			unset($_SESSION['ch02']);
-			unset($_SESSION['ch01_timer']);
-			unset($_SESSION['ch02_timer']);
-			unset($_SESSION['ch02_egg']);
-			unset($_SESSION['ch01_egg']);
-			unset($_SESSION['ch03']);
-			unset($_SESSION['ch04']);
-			unset($_SESSION['ch03_timer']);
-			unset($_SESSION['ch04_timer']);
-			unset($_SESSION['ch04_stamp']);
+			unsetSession();
 			echo "<script>document.cookie='izon=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';</script>";
 			echo "<script> $('#victoryModal').modal(); 
 			$('#modalCloseV').click(function() {
@@ -339,6 +363,7 @@ if ($_SESSION['ch04'] == 1) {
 				window.close();
 			});
 			</script>";
+			$monitor->update(CHALLENGE_SUCCESS);
 		}
 ?>
 <script>
