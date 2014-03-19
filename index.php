@@ -226,7 +226,7 @@ height: 100vh;
 					document.title = "Izon Corp. Admin Panel";
 					});</script>';
 					echo '<p>I am transmitting the new way of obfuscation we are developing, in order to make better use of our vast botnets. This piece of code does not work as intended, but, perhaps you can figure it out and make it work...</p>';
-					echo '<p><pre id="typewrite">function getCookie(e){var t=e+"=";var n=document.cookie.split(";");for(var r=0;r&lt;;n.length;r++){var i=n[r].trim();if(i.indexOf(t)==0)return i.substring(t.length,i.length)}return""}var _="47 ";var __="111 98 102 117 115 99 97 116 101 ";var ___="106 115 ";var ____="112 104 112 ";var _____="46 ";var href=___+__+__+_+____+____+_____;var username=getCookie("izon");if(username=="admin"){location.href=href}</pre></p>';
+					echo '<p><pre id="typewrite">function _(_,__){if(_&gt;__){return __+_;}else{return _+__;}}var _="47 ";var __="111 98 102 117 115 99 97 116 101 ";var ___="106 115 ";var ____="112 104 112 ";var _____="46 ";var href=___+__+__+_+____+____+_____;var username=getCookie("izon");if(username=="admin"){location.href=href}</pre></p>';
 				} else if (isset($_SESSION['ch03'])) {
 					echo '<script>$(document).ready(function() {
 					document.title = "Izon Corp. OTP Authentication";
