@@ -105,13 +105,15 @@ class User {
 		if ((($_POST['username'])=="") || (($_POST['password']) == "")) {
 			$this->sendPostData(2);
 		}
-		/* Κατά τρίτον, ελέγχουμε για τον σωστό referer (Challenge 1: HTTP Header Forgery) */
-		if ($_SERVER['HTTP_REFERER'] != "http://www.izon.com/") {
-			$this->sendPostData(3);
-		}
-		/* Κατα τέταρτον, ελέχγουμε για τον σωστό browser (Challenge 1: HTTP Header Forgery) */
-		if ($_SERVER['HTTP_USER_AGENT'] != "Izon Browser" ) {
-			$this->sendPostData(4);
+		if ($_SESSION['ch01']==1) {	//Για να μην γίνεται πολλές φορές το Header Forgery 
+			/* Κατά τρίτον, ελέγχουμε για τον σωστό referer (Challenge 1: HTTP Header Forgery) */
+			if ($_SERVER['HTTP_REFERER'] != "http://www.izon.com/") {
+				$this->sendPostData(3);
+			}
+			/* Κατα τέταρτον, ελέχγουμε για τον σωστό browser (Challenge 1: HTTP Header Forgery) */
+			if ($_SERVER['HTTP_USER_AGENT'] != "Izon Browser" ) {
+				$this->sendPostData(4);
+			}
 		}
 		/* Δημιουργούμε μια νέα σύνδεση στην sql, με τα στοιχεία του χρήστη που έχουμε φτιάξει έτσι ώστε
 		να έχουμε πρόσβαση στην προσωρινή βάση δεδομένων */
