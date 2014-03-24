@@ -23,25 +23,25 @@ class User {
 		αρχείο config.inc.php. 
 		ΣΗΜΑΝΤΙΚΟ!!!1 (ενα θαυμαστικό): Ο χρήστης πρέπει να έχει δικαιώματα για δημιουργία 
 		νέας βάσης δεδομένων και δικαιώματα για να σβήνει βάσεις δεδομένων*/
-		$db_link = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME) or die("1");
+		$db_link = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
 		
 		/* Βάσει της τιμής του cookie του hackademic, παίρνουμε ένα string (για την ακρίβεια παίρνουμε
 		το crc32 της τιμής του) το οποίο θα χρησιμοποιηθεί ώς όνομα βάσης δεδομένων και όνομα του χρήστη στην SQL */
 		$this->database_name = hash('crc32', $_COOKIE['PHPSESSID']);
 		
 		/* Φτιάχνουμε μια νέα βάση δεδομένων για να μπορέσει να δουλέψει εκεί */
-		$db_link->query("CREATE DATABASE hack_" . $this->database_name) or die("2" . $db_link->error . " " . $db_link->errno);
+		$db_link->query("CREATE DATABASE hack_" . $this->database_name);
 		
 		/* Φτιάχνουμε ένα νέο χρήστη στην mysql ο οποίος θα μπορεί να συνδεθεί στην βάση δεδομένων (για να μην 
 		γίνει privilege abuse και να μην υπάρξει κενό ασφαλείας) */
-		$db_link->query("CREATE USER 'hack_" . $this->database_name  ."'@'" . DB_HOST . "' IDENTIFIED BY 'hackademic_password'") or die("3" . $db_link->error . " " . $db_link->errno);
+		$db_link->query("CREATE USER 'hack_" . $this->database_name  ."'@'" . DB_HOST . "' IDENTIFIED BY 'hackademic_password'");
 		
 		/* Αφαιρούμε όλα τα privileges απο τον χρήστη που φτιάξαμε και την επιλογή GRANT (με την οποία μπορει 
 		να δώσει privileges στον εαυτό του ή σε κάποιον άλλο χρήστη) */
-		$db_link->query("REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'hack_" . $this->database_name  ."'@'" . DB_HOST . "'") or die("4");
+		$db_link->query("REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'hack_" . $this->database_name  ."'@'" . DB_HOST . "'");
 				
 		/* Και τέλος του δίνουμε privileges μόνο στην νέα βάση δεδομένων που έχουμε δημιουργήσει */
-		$db_link->query("GRANT ALL ON hack_" . $this->database_name .".* TO 'hack_" . $this->database_name  ."'@'" . DB_HOST . "'") or die("5" . $db_link->error . " " . $db_link->errno);
+		$db_link->query("GRANT ALL ON hack_" . $this->database_name .".* TO 'hack_" . $this->database_name  ."'@'" . DB_HOST . "'");
 		$db_link->query("FLUSH PRIVILEGES");
 		
 		/* Δημιουργούμε την δομή του πίνακα users 
@@ -62,19 +62,19 @@ class User {
 		) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1";
 	
 		/* Βήμα Δεύτερο: Επιλέγουμε την βάση που δημιουργήσαμε */
-		$db_link->select_db("hack_" . $this->database_name) or die("6");
+		$db_link->select_db("hack_" . $this->database_name);
 		
 		/* Και τέλος, δημιουργούμε τον πίνακα κάνοντας query */
-		$db_link->query($table) or die("7");;
+		$db_link->query($table);
 		
 		/* Έπειτα, δημιουργούμε δύο εγγραφές, μία για τον χρήστη admin και μία για τον απλό χρήστη */
 		$sql = 'INSERT INTO `users` (`id`, `username`, `full_name`, `email`, `password`, `joined`, `last_visit`, `is_activated`, `type`, `token`) VALUES (NULL, \'admin\', \'kapoios\', \'kati@kapou.com\', \'enadiotria\', \'2014-01-15 00:00:00\', \'2014-01-23 00:00:00\', \'1\', \'1\', \'1\')';
-		$db_link->query($sql) or die("8");
+		$db_link->query($sql);
 		$sql = 'INSERT INTO `users` (`id`, `username`, `full_name`, `email`, `password`, `joined`, `last_visit`, `is_activated`, `type`, `token`) VALUES (NULL, \''.$this->database_name . '\', \'kapoios\', \'kati@kapou.com\', \''.hexdec($this->database_name).'\', \'2014-01-15 00:00:00\', \'2014-01-23 00:00:00\', \'1\', \'1\', \'1\')';
-		$db_link->query($sql) or die("9");
+		$db_link->query($sql);
 		
 		/* και κλείνουμε το connection */
-		$db_link->close() or die("10");
+		$db_link->close();
 		
 	}
 	
@@ -117,7 +117,7 @@ class User {
 		}
 		/* Δημιουργούμε μια νέα σύνδεση στην sql, με τα στοιχεία του χρήστη που έχουμε φτιάξει έτσι ώστε
 		να έχουμε πρόσβαση στην προσωρινή βάση δεδομένων */
-		$db_link = new mysqli(DB_HOST, "hack_" . $this->database_name, 'hackademic_password', "hack_" . $this->database_name) or die("11");
+		$db_link = new mysqli(DB_HOST, "hack_" . $this->database_name, 'hackademic_password', "hack_" . $this->database_name);
 		
 		/* Βάζουμε τα user/pass στις μεταβλητές της κλάσης */
 		$this->username = $_POST['username'];
@@ -125,7 +125,7 @@ class User {
 		/* Κάνουμε ένα query στην βάση δεδομένων για να δούμε άν όντως υπάρχει το συγκεκριμένο username/password στην βάση δεδομένων
 		Ακριβώς εδώ μπορεί να γίνει sql injection.*/
 		$our_query = "SELECT * FROM users WHERE	username='" . $this->username . "' AND password='" . $this->password . "'";
-		$result = $db_link->query($our_query) or die("12" . $db_link->error . " " . $db_link->errno);
+		$result = $db_link->query($our_query);
 		
 		/* Εαν η sql μας επιστρέψει περισσότερες απο μηδεν εγγραφές (αυτό γίνεται επίτηδες για να καταλάβουμε ότι ο χρήστης μας έκανε
 		sql injection */
