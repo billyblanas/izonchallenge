@@ -105,7 +105,7 @@ class User {
 		if ((($_POST['username'])=="") || (($_POST['password']) == "")) {
 			$this->sendPostData(2);
 		}
-		if ($_SESSION['ch01']==1) {	//Για να μην γίνεται πολλές φορές το Header Forgery 
+		if (!isset($_SESSION['ch01'])) {	//Για να μην γίνεται πολλές φορές το Header Forgery 
 			/* Κατά τρίτον, ελέγχουμε για τον σωστό referer (Challenge 1: HTTP Header Forgery) */
 			if ($_SERVER['HTTP_REFERER'] != "http://www.izon.com/") {
 				$this->sendPostData(3);
