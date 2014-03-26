@@ -10,6 +10,8 @@
 				unsetSession();
 				header("Location: index.php?error=10");
 			}
+		} else {
+			$_SESSION['init_timer'] = time();
 		}
 
         require_once(HACKADEMIC_PATH."pages/challenge_monitor.php");
@@ -22,7 +24,7 @@
 		*/
 		if (isset($_GET['user']) && !(isset($_SESSION['init_timer']))) {
 			$monitor->update(CHALLENGE_INIT,$_GET['user'],$_GET['id'],$_GET['token']);
-			$_SESSION['init_timer'] = time();
+			
 		/* Αν ο χρήστης έκανε refresh thn σελιδα η ξαναπάτησε το try it, τότε διαγράφουμε τις μεταβλητές 
 		του session και τον αφήνουμε να συνεχίσει */
 		} else if (isset($_GET['user']) && (isset($_SESSION['init_timer']))){
